@@ -9,6 +9,7 @@ public class Task {
     private TaskPriority priority;
     private TaskStatus status;
     private Category category;
+    private Integer categoryId;
     private int userID;
     private Timestamp createdAt;
 
@@ -45,6 +46,9 @@ public class Task {
 
     public Category getCategory() { return category; }
     public void setCategory(Category category) { this.category = category; }
+
+    public Integer getCategoryId() { return categoryId; }
+    public void setCategoryId(Integer categoryId) { this.categoryId = categoryId; }
 
     public int getUserID() { return userID; }
     public void setUserID(int userID) { this.userID = userID; }

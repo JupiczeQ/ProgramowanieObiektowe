@@ -1,8 +1,10 @@
 package RightPanels;
 
+import Database.CategoryDAO;
 import Database.TaskDAO;
 import Designs.buttonStyler;
 import Designs.comboBoxStyler;
+import Models.Category;
 import Models.Task;
 import Models.TaskPriority;
 import Models.TaskStatus;
@@ -12,6 +14,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AddTaskPanel extends JDialog{
     private JButton saveButton;
@@ -23,6 +27,7 @@ public class AddTaskPanel extends JDialog{
     private JTextField nameField;
     private JPanel mainFrame;
     private int userID;
+    private List<Category> categories = new ArrayList<>();
 
     public AddTaskPanel(JFrame parent, int userID){
         super(parent,"Dodaj zadanie", true);
@@ -49,6 +54,15 @@ public class AddTaskPanel extends JDialog{
             priorityComboBox.addItem(priority);
         }
 
+        try {
+            categories = CategoryDAO.getCategoriesByUserId(userID);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        for (Category cat : categories){
+            categoryComboBox.addItem(cat.getName());
+        }
+
         descriptionField.setBorder(UIManager.getBorder("TextField.border"));
 
         buttonStyler.styleButton(saveButton);
@@ -63,39 +77,6 @@ public class AddTaskPanel extends JDialog{
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 String title = nameField.getText().trim();
-                String description = descriptionField.getText().trim();
-                String priorityString = (String) priorityComboBox.getSelectedItem();
-                String statusString = (String) statusComboBox.getSelectedItem();
-
-                TaskPriority priority = TaskPriority.fromDisplayName(priorityString);
-                TaskStatus status = TaskStatus.fromDisplayName(statusString);
-
-                if (priority == null) priority = TaskPriority.MEDIUM;
-                if (status == null) status = TaskStatus.TODO;
-                try{
-                    Task newTask = new Task();
-                    newTask.setTitle(title);
-                    newTask.setDescription(description);
-                    newTask.setPriority(priority);
-                    newTask.setStatus(status);
-                    newTask.setUserID(userID);
-                    newTask.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-                    boolean success = TaskDAO.saveTask(newTask);
-                    if (success) {
-                        JOptionPane.showMessageDialog(mainFrame,
-                                "Zadanie '" + title + "' zostało dodane pomyślnie!",
-                                "Sukces", JOptionPane.INFORMATION_MESSAGE);
-                        dispose();
-
-                    } else {
-                        JOptionPane.showMessageDialog(mainFrame,
-                                "Nie udało się zapisać zadania.",
-                                "Błąd", JOptionPane.ERROR_MESSAGE);
-                    }
-                }catch (SQLException e) {
-                    e.printStackTrace();
-                    }
-
 
                 if (title.isEmpty()) {
                     JOptionPane.showMessageDialog(AddTaskPanel.this,
@@ -103,7 +84,62 @@ public class AddTaskPanel extends JDialog{
                             "Błąd", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                dispose();
+
+                String description = descriptionField.getText().trim();
+
+                Object selectedPriority = priorityComboBox.getSelectedItem();
+                Object selectedStatus = statusComboBox.getSelectedItem();
+                String selectedCategoryName = (String) categoryComboBox.getSelectedItem();
+                Integer categoryId = null;
+
+                TaskPriority priority = TaskPriority.MEDIUM; // domyślne
+                TaskStatus status = TaskStatus.TODO; // domyślne
+
+                // Sprawdź czy to enum czy String "Wszystkie"
+                if (selectedPriority instanceof TaskPriority) {
+                    priority = (TaskPriority) selectedPriority;
+                }
+
+                if (selectedStatus instanceof TaskStatus) {
+                    status = (TaskStatus) selectedStatus;
+                }
+
+                try {
+                    if (selectedCategoryName != null && !selectedCategoryName.equals("Wszystkie")) {
+                        for (Category cat : categories) {
+                            if (cat.getName().equals(selectedCategoryName)) {
+                                categoryId = cat.getId();
+                                break;
+                            }
+                        }
+                    }
+
+                    Task newTask = new Task();
+                    newTask.setTitle(title);
+                    newTask.setDescription(description);
+                    newTask.setPriority(priority);
+                    newTask.setStatus(status);
+                    newTask.setUserID(userID);
+                    newTask.setCategoryId(categoryId);
+                    newTask.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+
+                    boolean success = TaskDAO.saveTask(newTask);
+                    if (success) {
+                        JOptionPane.showMessageDialog(mainFrame,
+                                "Zadanie '" + title + "' zostało dodane pomyślnie!",
+                                "Sukces", JOptionPane.INFORMATION_MESSAGE);
+                        dispose();
+                    } else {
+                        JOptionPane.showMessageDialog(mainFrame,
+                                "Nie udało się zapisać zadania.",
+                                "Błąd", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (SQLException e) {
+                    JOptionPane.showMessageDialog(mainFrame,
+                            "Błąd bazy danych: " + e.getMessage(),
+                            "Błąd", JOptionPane.ERROR_MESSAGE);
+                    e.printStackTrace();
+                }
             }
         });
     }

@@ -5,16 +5,13 @@ import Models.Task;
 import Models.TaskPriority;
 import Models.TaskStatus;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TaskDAO {
     public static boolean saveTask(Task task) throws SQLException {
-        String sql = "INSERT INTO tasks (title, description, priority, status, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO tasks (title, description, priority, status, category_id, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -23,8 +20,13 @@ public class TaskDAO {
             pstmt.setString(2, task.getDescription());
             pstmt.setString(3, task.getPriority().getDisplayName());
             pstmt.setString(4, task.getStatus().getDisplayName());
-            pstmt.setInt(5, task.getUserID());
-            pstmt.setTimestamp(6, task.getCreatedAt());
+            if (task.getCategoryId() != null) {
+                pstmt.setInt(5, task.getCategoryId());
+            } else {
+                pstmt.setNull(5, Types.INTEGER);
+            }
+            pstmt.setInt(6, task.getUserID());
+            pstmt.setTimestamp(7, task.getCreatedAt());
 
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;

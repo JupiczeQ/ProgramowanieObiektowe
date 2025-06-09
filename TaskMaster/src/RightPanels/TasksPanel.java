@@ -153,6 +153,16 @@ public class TasksPanel extends JPanel{
         }
     }
 
+    private static class CenteredTaskTableCellRenderer extends TaskTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            setHorizontalAlignment(SwingConstants.CENTER);
+            return this;
+        }
+    }
+
+
     public void loadTasks() {
         try {
             List<Task> tasks = TaskDAO.getTasksByUserId(userID);
@@ -191,8 +201,8 @@ public class TasksPanel extends JPanel{
         tasksTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tasksTable.getTableHeader().setReorderingAllowed(false);
 
-        // Renderery dla kolorów
-        tasksTable.setDefaultRenderer(Object.class, new TaskTableCellRenderer());
+        // Renderery dla kolorów i wysrodkowania
+        tasksTable.setDefaultRenderer(Object.class, new CenteredTaskTableCellRenderer());
 
         comboBoxStyler.styleComboBox(statusComboBox);
         comboBoxStyler.styleComboBox(priorityComboBox);
