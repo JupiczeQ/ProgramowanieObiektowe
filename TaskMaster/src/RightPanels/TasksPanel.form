@@ -47,12 +47,7 @@
                 </constraints>
                 <properties>
                   <background color="-1"/>
-                  <model>
-                    <item value="Wszystkie statusy"/>
-                    <item value="Do zrobienia"/>
-                    <item value="W trakcie"/>
-                    <item value="Ukończono"/>
-                  </model>
+                  <model/>
                   <toolTipText value="Statusy"/>
                 </properties>
               </component>
@@ -62,12 +57,7 @@
                 </constraints>
                 <properties>
                   <background color="-1"/>
-                  <model>
-                    <item value="Wszystkie priorytety"/>
-                    <item value="Wysoki"/>
-                    <item value="Średni"/>
-                    <item value="Niski"/>
-                  </model>
+                  <model/>
                   <toolTipText value="Priorytety"/>
                 </properties>
               </component>

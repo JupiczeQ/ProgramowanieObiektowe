@@ -43,6 +43,10 @@ public class LoginMenu extends JFrame{
 
         buttonStyler.styleButton(loginButton);
 
+        //TEST
+        loginField.setText("Igorek");
+        passwordField.setText("Wulkowicz1");
+
         iconLabel.setIcon(resize(iconTM,150,150));
 
         passEye.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -85,6 +89,7 @@ public class LoginMenu extends JFrame{
                 try {
                     int userID = UserDAO.authenticateUser(loginInput.trim(),passwordInput.trim());
                     if (userID!=-1){
+                        JOptionPane.showMessageDialog(LoginMenu.this, "Zalogowano jako " + loginField.getText().trim(), "Sukces", JOptionPane.INFORMATION_MESSAGE);
                         dispose();
                         Dashboard dashboard = new Dashboard(userID);
                         dashboard.setVisible(true);

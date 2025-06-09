@@ -1,4 +1,5 @@
 import Database.DatabaseConnection;
+import Database.UserDAO;
 import Designs.buttonStyler;
 import Fonts.FontAwesome;
 import RightPanels.CalendarPanel;
@@ -130,25 +131,6 @@ public class Dashboard extends JFrame{
         FontAwesome.setLabelIcon(signOutLabel, FontAwesome.Icons.SIGN_OUT_ALT, 16f);
     }
 
-    public void getUsernameByID(int userID){
-        String sql = "SELECT username FROM users WHERE id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, userID);
-
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                username = rs.getString("username");
-            } else {
-                username = null;
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     public Dashboard(int userID){
         super("DashBoard");
         this.setContentPane(mainFrame);
@@ -162,7 +144,7 @@ public class Dashboard extends JFrame{
         setupButtonListeners();
         setupDesigns();
 
-        getUsernameByID(userID);
+        username = UserDAO.getUsernameByID(userID);
         userLabel.setText(buttonStyler.createMixedText(userLabel.getText(),username));
 
         iconLabel.setIcon(resize(iconTM,150,150));
