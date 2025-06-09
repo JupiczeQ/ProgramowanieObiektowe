@@ -1,3 +1,4 @@
+import Database.DatabaseConnection;
 import Designs.buttonStyler;
 import Fonts.FontAwesome;
 import RightPanels.CalendarPanel;
@@ -11,6 +12,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class Dashboard extends JFrame{
     private JPanel mainFrame;
@@ -33,6 +38,8 @@ public class Dashboard extends JFrame{
     private CardLayout cardLayout;
     private JButton activeButton;
     private static final Color LIGHT_BLUE = new Color(219, 234, 254);
+    private String username;
+    private int userID;
 
     private ImageIcon iconTM = new ImageIcon(getClass().getResource("Figures/TaskMaster.png"));
 
@@ -44,7 +51,7 @@ public class Dashboard extends JFrame{
         cardLayout = new CardLayout();
         rightPanel.setLayout(cardLayout);
 
-        tasksPanel = new TasksPanel();
+        tasksPanel = new TasksPanel(userID);
         projectsPanel = new ProjectsPanel();
         categoriesPanel = new CategoriesPanel();
         calendarPanel = new CalendarPanel();
@@ -120,20 +127,43 @@ public class Dashboard extends JFrame{
         FontAwesome.setLabelIcon(notificationLabel, FontAwesome.Icons.BELL, 16f);
         FontAwesome.setLabelIcon(settingsLabel, FontAwesome.Icons.COG, 16f);
         FontAwesome.setLabelIcon(userLabel, FontAwesome.Icons.USER, 16f);
-        userLabel.setText(buttonStyler.createMixedText(userLabel.getText()," testUser")); //DO ZMIANY
         FontAwesome.setLabelIcon(signOutLabel, FontAwesome.Icons.SIGN_OUT_ALT, 16f);
     }
 
-    public Dashboard(){
+    public void getUsernameByID(int userID){
+        String sql = "SELECT username FROM users WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userID);
+
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                username = rs.getString("username");
+            } else {
+                username = null;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Dashboard(int userID){
         super("DashBoard");
         this.setContentPane(mainFrame);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         int width = 1000, height = 800;
         this.setSize(width,height);
 
+        this.userID = userID;
+
         createPanels();
         setupButtonListeners();
         setupDesigns();
+
+        getUsernameByID(userID);
+        userLabel.setText(buttonStyler.createMixedText(userLabel.getText(),username));
 
         iconLabel.setIcon(resize(iconTM,150,150));
 

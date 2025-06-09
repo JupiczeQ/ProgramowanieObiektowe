@@ -1,3 +1,4 @@
+import Database.UserDAO;
 import Designs.buttonStyler;
 import Fonts.FontAwesome;
 
@@ -8,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,13 +79,23 @@ public class LoginMenu extends JFrame{
                 if (loginInput.trim().equals(LOGIN) && passwordInput.equals(PASSWORD)) {
                     JOptionPane.showMessageDialog(LoginMenu.this, "Zalogowano jako admin", "Sukces", JOptionPane.INFORMATION_MESSAGE);
                     dispose();
-                    Dashboard dashboard = new Dashboard();
+                    Dashboard dashboard = new Dashboard(1);
                     dashboard.setVisible(true);
-                } else { // tu bedzie if do logowania jako user
-                    JOptionPane.showMessageDialog(LoginMenu.this, "Nieprawidłowy login lub hasło!", "Błąd logowania", JOptionPane.ERROR_MESSAGE);
-                    //loginField.setText("");
-                    passwordField.setText("");
-                    loginField.requestFocus();
+                }
+                try {
+                    int userID = UserDAO.authenticateUser(loginInput.trim(),passwordInput.trim());
+                    if (userID!=-1){
+                        dispose();
+                        Dashboard dashboard = new Dashboard(userID);
+                        dashboard.setVisible(true);
+                    }else{
+                        JOptionPane.showMessageDialog(LoginMenu.this, "Nieprawidłowy login lub hasło!", "Błąd logowania", JOptionPane.ERROR_MESSAGE);
+                        //loginField.setText("");
+                        passwordField.setText("");
+                        loginField.requestFocus();
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
             }
         });

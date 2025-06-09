@@ -17,7 +17,7 @@ public class AddTaskPanel extends JDialog{
     private JTextField nameField;
     private JPanel mainFrame;
 
-    public AddTaskPanel(JFrame parent){
+    public AddTaskPanel(JFrame parent, int userID){
         super(parent,"Dodaj zadanie", true);
         this.setContentPane(mainFrame);
         int width = 500, height = 400;
@@ -41,7 +41,7 @@ public class AddTaskPanel extends JDialog{
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                //do zrobienia
+
                 dispose();
             }
         });

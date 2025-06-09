@@ -19,7 +19,7 @@ public class TasksPanel extends JPanel{
     private JPanel mainFrame;
     private JFrame parentFrame;
 
-    public TasksPanel(){
+    public TasksPanel(int userID){
         this.setLayout(new BorderLayout());
         this.add(rightPanel, BorderLayout.CENTER);
 
@@ -38,7 +38,7 @@ public class TasksPanel extends JPanel{
         addTaskButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                AddTaskPanel addTaskPanel = new AddTaskPanel(parentFrame);
+                AddTaskPanel addTaskPanel = new AddTaskPanel(parentFrame, userID);
                 addTaskPanel.setVisible(true);
                 addTaskPanel.setAutoRequestFocus(true);
             }

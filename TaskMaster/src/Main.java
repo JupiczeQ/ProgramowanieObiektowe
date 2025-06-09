@@ -1,4 +1,10 @@
+import Database.DatabaseConnection;
+
 import javax.swing.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class Main {
     public static void main(String[] args) {
@@ -8,6 +14,7 @@ public class Main {
         LoginMenu menu = new LoginMenu();
         //RegisterMenu menu = new RegisterMenu();
         menu.setVisible(true);
+
     }
     private static void setupPolishUI() {
         UIManager.put("OptionPane.okButtonText", "OK");

@@ -1,3 +1,4 @@
+import Database.UserDAO;
 import Designs.buttonStyler;
 import Fonts.FontAwesome;
 import Fonts.SimpleIcons;
@@ -9,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -127,17 +129,45 @@ public class RegisterMenu extends JFrame{
                     return;
                 }
 
-                // Sprawdzenie czy login nie jest już zajęty (tu można dodać sprawdzenie w bazie danych)
-                if (loginInput.trim().equalsIgnoreCase("admin")) {
-                    JOptionPane.showMessageDialog(RegisterMenu.this, "Ten login jest już zajęty!", "Błąd", JOptionPane.ERROR_MESSAGE);
-                    return;
+                try {
+                    // Sprawdź czy użytkownik już istnieje
+                    if (UserDAO.userExists(loginInput.trim())) {
+                        JOptionPane.showMessageDialog(RegisterMenu.this,
+                                "Użytkownik o takiej nazwie już istnieje!",
+                                "Błąd", JOptionPane.ERROR_MESSAGE);
+                        loginField.requestFocus();
+                        loginField.selectAll();
+                        return;
+                    }
+
+
+                    // Zarejestruj użytkownika
+                    boolean success = UserDAO.registerUser(loginInput.trim(), passwordInput);
+
+                    if (success) {
+                        JOptionPane.showMessageDialog(RegisterMenu.this,
+                                "Konto zostało utworzone pomyślnie!\nMożesz się teraz zalogować.",
+                                "Sukces", JOptionPane.INFORMATION_MESSAGE);
+
+                        loginField.setText("");
+                        passwordField.setText("");
+                        rPasswordField.setText("");
+
+                        dispose();
+                        LoginMenu loginMenu = new LoginMenu();
+                        loginMenu.setVisible(true);
+                    } else {
+                        JOptionPane.showMessageDialog(RegisterMenu.this,
+                                "Wystąpił błąd podczas tworzenia konta.",
+                                "Błąd", JOptionPane.ERROR_MESSAGE);
+                    }
+
+                } catch (SQLException e) {
+                    JOptionPane.showMessageDialog(RegisterMenu.this,
+                            "Błąd bazy danych: " + e.getMessage(),
+                            "Błąd", JOptionPane.ERROR_MESSAGE);
+                    e.printStackTrace();
                 }
-
-                JOptionPane.showMessageDialog(RegisterMenu.this, "Konto zostało utworzone pomyślnie!", "Sukces", JOptionPane.INFORMATION_MESSAGE);
-
-                loginField.setText("");
-                rPasswordField.setText("");
-                passwordField.setText("");
 
                 dispose();
                 LoginMenu mainMenu = new LoginMenu();
