@@ -4,9 +4,11 @@ import Database.TaskDAO;
 import Designs.buttonStyler;
 import Designs.comboBoxStyler;
 import Fonts.FontAwesome;
+import Models.BaseTableModel;
 import Models.Task;
 import Models.TaskPriority;
 import Models.TaskStatus;
+import Utils.MessageUtils;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -33,34 +35,18 @@ public class TasksPanel extends JPanel{
     private int userID;
     private TaskTableModel tableModel;
 
-    private static class TaskTableModel extends AbstractTableModel {
-        private final String[] columnNames = {"Tytuł", "Status", "Priorytet", "Kategoria", "Data utworzenia"};
-        private List<Task> tasks = new ArrayList<>();
+    private static class TaskTableModel extends BaseTableModel<Task> {
         private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
-        public void setTasks(List<Task> tasks) {
-            this.tasks = tasks != null ? tasks : new ArrayList<>();
-            fireTableDataChanged();
+
+        public TaskTableModel() {
+            super(new String[]{"Tytuł", "Status", "Priorytet", "Kategoria", "Data utworzenia"});
         }
 
-        @Override
-        public int getRowCount() {
-            return tasks.size();
-        }
-
-        @Override
-        public int getColumnCount() {
-            return columnNames.length;
-        }
-
-        @Override
-        public String getColumnName(int column) {
-            return columnNames[column];
-        }
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            if (rowIndex >= tasks.size()) return null;
+            if (rowIndex >= items.size()) return null;
 
-            Task task = tasks.get(rowIndex);
+            Task task = items.get(rowIndex);
             switch (columnIndex) {
                 case 0: return task.getTitle();
                 case 1: return task.getStatus();
@@ -72,10 +58,7 @@ public class TasksPanel extends JPanel{
         }
 
         public Task getTaskAt(int rowIndex) {
-            if (rowIndex >= 0 && rowIndex < tasks.size()) {
-                return tasks.get(rowIndex);
-            }
-            return null;
+            return getItemAt(rowIndex);
         }
     }
 
@@ -96,19 +79,15 @@ public class TasksPanel extends JPanel{
 
         try {
             List<Task> tasks = TaskDAO.getTasksByUserId(userID, selectedStatus, selectedPriority);
-            tableModel.setTasks(tasks);
+            tableModel.setItems(tasks);
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Błąd podczas filtrowania zadań: " + e.getMessage(),
-                    "Błąd", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            MessageUtils.showDatabaseError(TasksPanel.this, e, "Błąd podczas filtrowania zadań:");
         }
     }
 
     private static class TaskTableCellRenderer extends DefaultTableCellRenderer {
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                                                       boolean isSelected, boolean hasFocus, int row, int column) {
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
             if (!isSelected) {
@@ -119,13 +98,13 @@ public class TasksPanel extends JPanel{
                     // Kolory dla statusu
                     switch (task.getStatus()) {
                         case TODO:
-                            setBackground(new Color(254, 242, 242)); // Jasny czerwony
+                            setBackground(new Color(254, 242, 242));
                             break;
                         case IN_PROGRESS:
-                            setBackground(new Color(255, 251, 235)); // Jasny żółty
+                            setBackground(new Color(255, 251, 235));
                             break;
                         case COMPLETED:
-                            setBackground(new Color(240, 253, 244)); // Jasny zielony
+                            setBackground(new Color(240, 253, 244));
                             break;
                         default:
                             setBackground(Color.WHITE);
@@ -166,12 +145,9 @@ public class TasksPanel extends JPanel{
     public void loadTasks() {
         try {
             List<Task> tasks = TaskDAO.getTasksByUserId(userID);
-            tableModel.setTasks(tasks);
+            tableModel.setItems(tasks);
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Błąd podczas ładowania zadań: " + e.getMessage(),
-                    "Błąd", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            MessageUtils.showDatabaseError(TasksPanel.this, e, "Błąd podczas ładowania zadań:");
         }
     }
 

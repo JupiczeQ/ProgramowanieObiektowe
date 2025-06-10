@@ -1,4 +1,3 @@
-import Database.CategoryDAO;
 import Database.TaskDAO;
 import Database.UserDAO;
 import Designs.buttonStyler;
@@ -6,6 +5,7 @@ import Fonts.FontAwesome;
 import Models.Task;
 import RightPanels.CategoriesPanel;
 import RightPanels.TasksPanel;
+import Utils.UIUtils;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -17,7 +17,6 @@ import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.util.List;
 
-import static Models.TaskPriority.*;
 
 public class Dashboard extends JFrame{
     private JPanel mainFrame;
@@ -44,10 +43,6 @@ public class Dashboard extends JFrame{
     private int userID;
 
     private ImageIcon iconTM = new ImageIcon(getClass().getResource("Figures/TaskMaster.png"));
-
-    private static ImageIcon resize(ImageIcon src, int width, int height){
-        return new ImageIcon(src.getImage().getScaledInstance(width,height, Image.SCALE_SMOOTH));
-    }
 
     public void updateStats() {
         try {
@@ -197,8 +192,9 @@ public class Dashboard extends JFrame{
 
         username = UserDAO.getUsernameByID(userID);
         userLabel.setText(buttonStyler.createMixedText(userLabel.getText(),username));
+        userLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        iconLabel.setIcon(resize(iconTM,150,150));
+        iconLabel.setIcon(UIUtils.resize(iconTM,150,150));
 
         updateStats();
 
@@ -206,16 +202,8 @@ public class Dashboard extends JFrame{
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                int result = JOptionPane.showConfirmDialog(
-                        null,
-                        "Czy na pewno chcesz się wylogować?",
-                        "Potwierdzenie wylogowania",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if(result == JOptionPane.YES_OPTION){
-                    dispose();
-                    LoginMenu loginMenu = new LoginMenu();
-                    loginMenu.setVisible(true);
+                if(WindowManager.confirmLogout(Dashboard.this)){
+                    WindowManager.switchToLogin(Dashboard.this);
                 }
             }
         });

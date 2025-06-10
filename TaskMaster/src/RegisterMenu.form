@@ -82,7 +82,7 @@
               <text value="Powtórz hasło:"/>
             </properties>
           </component>
-          <component id="ea33d" class="javax.swing.JPasswordField" binding="rPasswordField">
+          <component id="ea33d" class="javax.swing.JPasswordField" binding="confirmPasswordField">
             <constraints>
               <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <minimum-size width="220" height="30"/>
@@ -93,7 +93,7 @@
               <font size="16"/>
             </properties>
           </component>
-          <component id="5e485" class="javax.swing.JLabel" binding="rPassEye">
+          <component id="5e485" class="javax.swing.JLabel" binding="confirmPassEye">
             <constraints>
               <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false">
                 <minimum-size width="30" height="30"/>

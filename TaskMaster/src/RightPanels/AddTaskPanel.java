@@ -8,6 +8,7 @@ import Models.Category;
 import Models.Task;
 import Models.TaskPriority;
 import Models.TaskStatus;
+import Utils.MessageUtils;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -79,9 +80,7 @@ public class AddTaskPanel extends JDialog{
                 String title = nameField.getText().trim();
 
                 if (title.isEmpty()) {
-                    JOptionPane.showMessageDialog(AddTaskPanel.this,
-                            "Tytuł zadania nie może być pusty!",
-                            "Błąd", JOptionPane.ERROR_MESSAGE);
+                    MessageUtils.showError(AddTaskPanel.this, "Tytuł zadania nie może być pusty!");
                     return;
                 }
 
@@ -125,20 +124,13 @@ public class AddTaskPanel extends JDialog{
 
                     boolean success = TaskDAO.saveTask(newTask);
                     if (success) {
-                        JOptionPane.showMessageDialog(mainFrame,
-                                "Zadanie '" + title + "' zostało dodane pomyślnie!",
-                                "Sukces", JOptionPane.INFORMATION_MESSAGE);
+                        MessageUtils.showSuccess(AddTaskPanel.this,"Zadanie '" + title + "' zostało dodane pomyślnie!");
                         dispose();
                     } else {
-                        JOptionPane.showMessageDialog(mainFrame,
-                                "Nie udało się zapisać zadania.",
-                                "Błąd", JOptionPane.ERROR_MESSAGE);
+                        MessageUtils.showError(AddTaskPanel.this, "Nie udało się zapisać zadania.");
                     }
                 } catch (SQLException e) {
-                    JOptionPane.showMessageDialog(mainFrame,
-                            "Błąd bazy danych: " + e.getMessage(),
-                            "Błąd", JOptionPane.ERROR_MESSAGE);
-                    e.printStackTrace();
+                    MessageUtils.showDatabaseError(AddTaskPanel.this, e);
                 }
             }
         });

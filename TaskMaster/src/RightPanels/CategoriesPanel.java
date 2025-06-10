@@ -4,7 +4,9 @@ import Database.CategoryDAO;
 import Designs.buttonStyler;
 import Designs.comboBoxStyler;
 import Fonts.FontAwesome;
+import Models.BaseTableModel;
 import Models.Category;
+import Utils.MessageUtils;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -31,20 +33,21 @@ public class CategoriesPanel extends JPanel {
     private int userID;
     private List<Category> allCategories;
 
-    private static class CategoryTableModel extends AbstractTableModel {
-        private final String[] columnNames = {"Nazwa", "Liczba zadań"};
-        private List<Category> categories = new ArrayList<>();
+    private static class CategoryTableModel extends BaseTableModel<Category> {
         private List<Integer> taskCounts = new ArrayList<>();
 
-        public void setCategories(List<Category> categories) {
-            this.categories = categories != null ? categories : new ArrayList<>();
+        public CategoryTableModel() {
+            super(new String[]{"Nazwa", "Liczba zadań"});
+        }
+
+        @Override
+        protected void onItemsChanged() {
             loadTaskCounts();
-            fireTableDataChanged();
         }
 
         private void loadTaskCounts() {
             taskCounts.clear();
-            for (Category category : categories) {
+            for (Category category : items) {
                 try {
                     int count = CategoryDAO.getTaskCountForCategory(category.getId());
                     taskCounts.add(count);
@@ -55,25 +58,10 @@ public class CategoriesPanel extends JPanel {
         }
 
         @Override
-        public int getRowCount() {
-            return categories.size();
-        }
-
-        @Override
-        public int getColumnCount() {
-            return columnNames.length;
-        }
-
-        @Override
-        public String getColumnName(int column) {
-            return columnNames[column];
-        }
-
-        @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            if (rowIndex >= categories.size()) return null;
+            if (rowIndex >= items.size()) return null;
 
-            Category category = categories.get(rowIndex);
+            Category category = items.get(rowIndex);
             switch (columnIndex) {
                 case 0: return category.getName();
                 case 1: return taskCounts.get(rowIndex);
@@ -82,7 +70,7 @@ public class CategoriesPanel extends JPanel {
         }
 
         public Category getCategoryAt(int rowIndex) {
-            return (rowIndex >= 0 && rowIndex < categories.size()) ? categories.get(rowIndex) : null;
+            return getItemAt(rowIndex);
         }
 
         public int getTaskCountAt(int rowIndex) {
@@ -163,10 +151,7 @@ public class CategoriesPanel extends JPanel {
             allCategories = CategoryDAO.getCategoriesByUserId(userID);
             filterCategories();
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Błąd podczas ładowania kategorii: " + e.getMessage(),
-                    "Błąd", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            MessageUtils.showDatabaseError(CategoriesPanel.this, e, "Błąd podczas ładowania kategorii:");
         }
     }
 
@@ -205,7 +190,7 @@ public class CategoriesPanel extends JPanel {
                     .collect(Collectors.toList());
         }
 
-        tableModel.setCategories(filteredCategories);
+        tableModel.setItems(filteredCategories);
     }
 
     public void refreshCategories() {
