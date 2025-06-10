@@ -1,18 +1,10 @@
-import Database.DatabaseConnection;
-
 import javax.swing.*;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 
 public class Main {
     public static void main(String[] args) {
         setupPolishUI();
 
-        //Dashboard menu = new Dashboard();
         LoginMenu menu = new LoginMenu();
-        //RegisterMenu menu = new RegisterMenu();
         menu.setVisible(true);
 
     }

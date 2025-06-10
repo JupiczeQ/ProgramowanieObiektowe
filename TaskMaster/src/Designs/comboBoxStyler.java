@@ -4,8 +4,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 public class comboBoxStyler {
     private static final Color WHITE = new Color(255, 255, 255);
@@ -58,8 +56,7 @@ public class comboBoxStyler {
         // Stylowanie elementów listy
         comboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value,
-                                                          int index, boolean isSelected, boolean cellHasFocus) {
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
                 setFont(new Font(Font.DIALOG, Font.PLAIN, 16));

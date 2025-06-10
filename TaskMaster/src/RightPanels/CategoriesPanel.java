@@ -9,13 +9,11 @@ import Models.Category;
 import Utils.MessageUtils;
 
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +77,7 @@ public class CategoriesPanel extends JPanel {
     }
 
     public CategoriesPanel(int userID) {
+
         this.userID = userID;
         this.setLayout(new BorderLayout());
         this.add(mainPanel, BorderLayout.CENTER);
@@ -116,18 +115,27 @@ public class CategoriesPanel extends JPanel {
     }
 
     private void setupEventListeners() {
+        Window parentWindow = SwingUtilities.getWindowAncestor(CategoriesPanel.this);
+        JFrame parentFrame;
+
+        if (parentWindow instanceof JFrame) {
+            parentFrame = (JFrame) parentWindow;
+        } else {
+            parentFrame = null;
+        }
         addCategoryButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //showAddCategoryDialog();
+                showCategoryPanel(null);
             }
         });
 
-        // Filtrowanie kategorii
         filterComboBox.addActionListener(e -> filterCategories());
-
-        // Wyszukiwanie kategorii
-        searchField.addActionListener(e -> filterCategories());
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            public void changedUpdate(DocumentEvent e) { filterCategories(); }
+            public void removeUpdate(DocumentEvent e) { filterCategories(); }
+            public void insertUpdate(DocumentEvent e) { filterCategories(); }
+        });
 
         // Obsługa podwójnego kliknięcia w tabelę - edycja kategorii
         categoriesTable.addMouseListener(new MouseAdapter() {
@@ -138,12 +146,32 @@ public class CategoriesPanel extends JPanel {
                     if (row >= 0) {
                         Category category = tableModel.getCategoryAt(row);
                         if (category != null) {
-                           // showEditCategoryDialog(category);
+                            showCategoryPanel(category);
                         }
                     }
                 }
             }
         });
+    }
+
+    private void showCategoryPanel(Category category) {
+        Window parentWindow = SwingUtilities.getWindowAncestor(this);
+        JFrame parentFrame = null;
+
+        if (parentWindow instanceof JFrame) {
+            parentFrame = (JFrame) parentWindow;
+        }
+
+        ModCategoryPanel dialog = new ModCategoryPanel(parentFrame, userID, category);
+
+        dialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                refreshCategories();
+            }
+        });
+
+        dialog.setVisible(true);
     }
 
     private void loadCategories() {

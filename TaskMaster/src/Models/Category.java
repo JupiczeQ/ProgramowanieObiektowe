@@ -3,15 +3,13 @@ package Models;
 public class Category {
     private int id;
     private String name;
-    private String color;
     private int userID;
 
     public Category(){}
 
-    public Category(int id, String name, String color, int userID){
+    public Category(int id, String name, int userID){
         this.id = id;
         this.name = name;
-        this.color = color;
         this.userID = userID;
     }
 
@@ -20,9 +18,6 @@ public class Category {
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-
-    public String getColor() { return color; }
-    public void setColor(String color) { this.color = color; }
 
     public int getUserID() { return userID; }
     public void setUserID(int userID) { this.userID = userID; }

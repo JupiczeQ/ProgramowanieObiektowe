@@ -9,14 +9,13 @@ import java.util.List;
 public class CategoryDAO {
 
     public static boolean saveCategory(Category category) throws SQLException {
-        String sql = "INSERT INTO categories (name, color, user_id) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO categories (name, user_id) VALUES (?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, category.getName());
-            pstmt.setString(2, category.getColor());
-            pstmt.setInt(3, category.getUserID());
+            pstmt.setInt(2, category.getUserID());
 
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
@@ -25,7 +24,7 @@ public class CategoryDAO {
 
     public static List<Category> getCategoriesByUserId(int userID) throws SQLException {
         List<Category> categories = new ArrayList<>();
-        String sql = "SELECT id, name, color, user_id FROM categories WHERE user_id = ? ORDER BY name";
+        String sql = "SELECT id, name, user_id FROM categories WHERE user_id = ? ORDER BY name";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -37,7 +36,6 @@ public class CategoryDAO {
                 Category category = new Category(
                         rs.getInt("id"),
                         rs.getString("name"),
-                        rs.getString("color"),
                         rs.getInt("user_id")
                 );
                 categories.add(category);
@@ -48,15 +46,14 @@ public class CategoryDAO {
     }
 
     public static boolean updateCategory(Category category) throws SQLException {
-        String sql = "UPDATE categories SET name = ?, color = ? WHERE id = ? AND user_id = ?";
+        String sql = "UPDATE categories SET name = ? WHERE id = ? AND user_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, category.getName());
-            pstmt.setString(2, category.getColor());
-            pstmt.setInt(3, category.getId());
-            pstmt.setInt(4, category.getUserID());
+            pstmt.setInt(2, category.getId());
+            pstmt.setInt(3, category.getUserID());
 
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
@@ -64,7 +61,6 @@ public class CategoryDAO {
     }
 
     public static boolean deleteCategory(int categoryId, int userID) throws SQLException {
-        // Sprawdź czy kategoria ma przypisane zadania
         String checkSql = "SELECT COUNT(*) FROM tasks WHERE category_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();

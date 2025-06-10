@@ -1,7 +1,5 @@
 package Utils;
 
-import javax.swing.*;
-
 public class ValidationUtils {
     public static ValidationResult validateRegistration(String login, String password, String confirmPassword) {
         if (login.trim().isEmpty()) {

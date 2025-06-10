@@ -9,7 +9,6 @@ import java.awt.*;
 public class buttonStyler {
     private static final Color WHITE = new Color(255, 255, 255);
     private static final Color BLUE = new Color(29, 78, 216);
-    private static final Color LIGHT_BLUE = new Color(219, 234, 254);
 
     public static void styleButton(JButton button) {
         styleButton(button, null, null);

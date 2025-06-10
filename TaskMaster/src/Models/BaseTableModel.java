@@ -1,4 +1,3 @@
-// BaseTableModel.java
 package Models;
 
 import javax.swing.table.AbstractTableModel;

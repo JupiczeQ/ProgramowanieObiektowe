@@ -5,7 +5,6 @@ import Utils.MessageUtils;
 import Utils.UIUtils;
 import Utils.ValidationResult;
 import Utils.ValidationUtils;
-import com.mysql.cj.protocol.Message;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,10 +40,6 @@ public class LoginMenu extends JFrame{
 
         buttonStyler.styleButton(loginButton);
 
-        //TEST
-        loginField.setText("Igorek");
-        passwordField.setText("Wulkowicz1");
-
         iconLabel.setIcon(UIUtils.resize(iconTM,150,150));
 
         passEye.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -76,6 +71,7 @@ public class LoginMenu extends JFrame{
                 if (loginInput.trim().equals(LOGIN) && passwordInput.equals(PASSWORD)) {
                     MessageUtils.showSuccess(LoginMenu.this,"Zalogowano jako admin");
                     WindowManager.switchToDashboard(LoginMenu.this, 1);
+                    return;
                 }
                 try {
                     int userID = UserDAO.authenticateUser(loginInput.trim(),passwordInput.trim());

@@ -11,35 +11,42 @@ import Models.TaskStatus;
 import Utils.MessageUtils;
 
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TasksPanel extends JPanel{
     private JPanel rightPanel;
     private JLabel sidePanelName;
     private JComboBox statusComboBox;
     private JComboBox priorityComboBox;
+    private JTextField searchField;
     private JButton addTaskButton;
     private JTable tasksTable;
     private JPanel mainFrame;
     private JFrame parentFrame;
     private int userID;
+    private boolean isAdmin;
     private TaskTableModel tableModel;
+    private List<Task> allTasks;
 
     private static class TaskTableModel extends BaseTableModel<Task> {
         private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+        private final boolean isAdmin;
 
-        public TaskTableModel() {
-            super(new String[]{"Tytuł", "Status", "Priorytet", "Kategoria", "Data utworzenia"});
+        public TaskTableModel(boolean isAdmin) {
+            super(isAdmin ?
+                    new String[]{"Użytkownik", "Tytuł", "Status", "Priorytet", "Kategoria", "Data utworzenia"} :
+                    new String[]{"Tytuł", "Status", "Priorytet", "Kategoria", "Data utworzenia"}
+            );
+            this.isAdmin = isAdmin;
         }
 
         @Override
@@ -47,13 +54,26 @@ public class TasksPanel extends JPanel{
             if (rowIndex >= items.size()) return null;
 
             Task task = items.get(rowIndex);
-            switch (columnIndex) {
-                case 0: return task.getTitle();
-                case 1: return task.getStatus();
-                case 2: return task.getPriority();
-                case 3: return task.getCategory() != null ? task.getCategory().getName() : "Brak kategorii";
-                case 4: return task.getCreatedAt() != null ? dateFormat.format(task.getCreatedAt()) : "";
-                default: return null;
+
+            if (isAdmin) {
+                switch (columnIndex) {
+                    case 0: return task.getUsername();
+                    case 1: return task.getTitle();
+                    case 2: return task.getStatus();
+                    case 3: return task.getPriority();
+                    case 4: return task.getCategory() != null ? task.getCategory().getName() : "Brak kategorii";
+                    case 5: return task.getCreatedAt() != null ? dateFormat.format(task.getCreatedAt()) : "";
+                    default: return null;
+                }
+            } else {
+                switch (columnIndex) {
+                    case 0: return task.getTitle();
+                    case 1: return task.getStatus();
+                    case 2: return task.getPriority();
+                    case 3: return task.getCategory() != null ? task.getCategory().getName() : "Brak kategorii";
+                    case 4: return task.getCreatedAt() != null ? dateFormat.format(task.getCreatedAt()) : "";
+                    default: return null;
+                }
             }
         }
 
@@ -63,26 +83,43 @@ public class TasksPanel extends JPanel{
     }
 
     private void filterTasks() {
+        if (allTasks == null) return;
+
+        List<Task> filteredTasks = new ArrayList<>(allTasks);
+
         Object selectedStatusObj = statusComboBox.getSelectedItem();
-        Object selectedPriorityObj = priorityComboBox.getSelectedItem();
-
-        TaskStatus selectedStatus = null;
-        TaskPriority selectedPriority = null;
-
         if (selectedStatusObj instanceof TaskStatus) {
-            selectedStatus = (TaskStatus) selectedStatusObj;
+            TaskStatus selectedStatus = (TaskStatus) selectedStatusObj;
+            filteredTasks = filteredTasks.stream()
+                    .filter(task -> task.getStatus() == selectedStatus)
+                    .collect(Collectors.toList());
         }
 
+        Object selectedPriorityObj = priorityComboBox.getSelectedItem();
         if (selectedPriorityObj instanceof TaskPriority) {
-            selectedPriority = (TaskPriority) selectedPriorityObj;
+            TaskPriority selectedPriority = (TaskPriority) selectedPriorityObj;
+            filteredTasks = filteredTasks.stream()
+                    .filter(task -> task.getPriority() == selectedPriority)
+                    .collect(Collectors.toList());
         }
 
-        try {
-            List<Task> tasks = TaskDAO.getTasksByUserId(userID, selectedStatus, selectedPriority);
-            tableModel.setItems(tasks);
-        } catch (SQLException e) {
-            MessageUtils.showDatabaseError(TasksPanel.this, e, "Błąd podczas filtrowania zadań:");
+        String searchText = searchField.getText().trim().toLowerCase();
+        if (!searchText.isEmpty()) {
+            filteredTasks = filteredTasks.stream()
+                    .filter(task -> {
+                        boolean matches = task.getTitle().toLowerCase().contains(searchText) ||
+                                (task.getDescription() != null && task.getDescription().toLowerCase().contains(searchText));
+
+                        if (isAdmin && task.getUsername() != null) {
+                            matches = matches || task.getUsername().toLowerCase().contains(searchText);
+                        }
+
+                        return matches;
+                    })
+                    .collect(Collectors.toList());
         }
+
+        tableModel.setItems(filteredTasks);
     }
 
     private static class TaskTableCellRenderer extends DefaultTableCellRenderer {
@@ -141,21 +178,25 @@ public class TasksPanel extends JPanel{
         }
     }
 
-
     public void loadTasks() {
         try {
-            List<Task> tasks = TaskDAO.getTasksByUserId(userID);
-            tableModel.setItems(tasks);
+            if (isAdmin) {
+                allTasks = TaskDAO.getAllTasks();
+            } else {
+                allTasks = TaskDAO.getTasksByUserId(userID);
+            }
+            filterTasks();
         } catch (SQLException e) {
             MessageUtils.showDatabaseError(TasksPanel.this, e, "Błąd podczas ładowania zadań:");
         }
     }
 
-    public TasksPanel(int userID){
+    public TasksPanel(int userID, boolean isAdmin){
         this.setLayout(new BorderLayout());
         this.add(rightPanel, BorderLayout.CENTER);
 
         this.userID = userID;
+        this.isAdmin = isAdmin;
 
         statusComboBox.removeAllItems();
         statusComboBox.addItem("Wszystkie");
@@ -169,7 +210,7 @@ public class TasksPanel extends JPanel{
             priorityComboBox.addItem(priority);
         }
 
-        tableModel = new TaskTableModel();
+        tableModel = new TaskTableModel(isAdmin);
         loadTasks();
 
         tasksTable.setModel(tableModel);
@@ -187,27 +228,68 @@ public class TasksPanel extends JPanel{
         addTaskButton.setBackground(new Color(29, 78, 216));
         addTaskButton.setForeground(Color.WHITE);
 
+        sidePanelName.setText(isAdmin ? "Wszystkie zadania" : "Moje zadania");
+
         Window parentWindow = SwingUtilities.getWindowAncestor(mainFrame);
         if(parentWindow instanceof JFrame){
             parentFrame = (JFrame) parentWindow;
         }
 
+        setupEventListeners();
+    }
+
+    public TasksPanel(int userID){
+        this(userID, false); // Domyślnie nie jest adminem
+    }
+
+    private void setupEventListeners() {
         addTaskButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                AddTaskPanel addTaskPanel = new AddTaskPanel(parentFrame, userID);
+                ModTaskPanel modTaskPanel = new ModTaskPanel(parentFrame, userID, null, isAdmin);
 
-                addTaskPanel.addWindowListener(new WindowAdapter() {
+                modTaskPanel.addWindowListener(new WindowAdapter() {
                     @Override
-                    public void windowClosed(WindowEvent e){
+                    public void windowClosed(WindowEvent e) {
                         loadTasks();
                     }
                 });
-                addTaskPanel.setVisible(true);
-                addTaskPanel.setAutoRequestFocus(true);
+                modTaskPanel.setVisible(true);
             }
         });
+
+        // Podwójne kliknięcie - edycja zadania
+        tasksTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int row = tasksTable.getSelectedRow();
+                    if (row >= 0) {
+                        Task task = tableModel.getTaskAt(row);
+                        if (task != null) {
+                            ModTaskPanel modTaskPanel = new ModTaskPanel(parentFrame, userID, task, isAdmin);
+
+                            modTaskPanel.addWindowListener(new WindowAdapter() {
+                                @Override
+                                public void windowClosed(WindowEvent e) {
+                                    loadTasks();
+                                }
+                            });
+
+                            modTaskPanel.setVisible(true);
+                        }
+                    }
+                }
+            }
+        });
+
         statusComboBox.addActionListener(e -> filterTasks());
         priorityComboBox.addActionListener(e -> filterTasks());
+
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            public void changedUpdate(DocumentEvent e) { filterTasks(); }
+            public void removeUpdate(DocumentEvent e) { filterTasks(); }
+            public void insertUpdate(DocumentEvent e) { filterTasks(); }
+        });
     }
 }

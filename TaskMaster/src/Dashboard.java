@@ -41,12 +41,24 @@ public class Dashboard extends JFrame{
     private static final Color LOW_PRIORITY_COLOR = new Color(21, 128, 61);
     private String username;
     private int userID;
+    private boolean isAdmin;
+
+    private boolean checkIfAdmin(int userID) {
+        return userID == 1; // Admin ma ID = 1
+    }
 
     private ImageIcon iconTM = new ImageIcon(getClass().getResource("Figures/TaskMaster.png"));
 
     public void updateStats() {
         try {
-            List<Task> allTasks = TaskDAO.getTasksByUserId(userID);
+            List<Task> allTasks;
+
+            if (isAdmin) {
+                allTasks = TaskDAO.getAllTasks();
+                categoriesButton.setVisible(false);
+            } else {
+                allTasks = TaskDAO.getTasksByUserId(userID);
+            }
             int totalTasks = allTasks.size();
 
             int highCount = 0, mediumCount = 0, lowCount = 0;
@@ -85,7 +97,8 @@ public class Dashboard extends JFrame{
 
         statsPanel.setLayout(new BoxLayout(statsPanel, BoxLayout.Y_AXIS));
         statsPanel.setBackground(Color.WHITE);
-        TitledBorder titledBorder = BorderFactory.createTitledBorder("Statystyki");
+        String title = isAdmin ? "Statystyki (wszystkie zadania)" : "Statystyki";
+        TitledBorder titledBorder = BorderFactory.createTitledBorder(title);
         titledBorder.setTitleFont(titleFont);
         statsPanel.setBorder(titledBorder);
 
@@ -115,7 +128,7 @@ public class Dashboard extends JFrame{
         cardLayout = new CardLayout();
         rightPanel.setLayout(cardLayout);
 
-        tasksPanel = new TasksPanel(userID);
+        tasksPanel = new TasksPanel(userID, isAdmin);
         categoriesPanel = new CategoriesPanel(userID);
 
         rightPanel.add(tasksPanel, "TASKS");
@@ -167,8 +180,14 @@ public class Dashboard extends JFrame{
         userLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         signOutLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        buttonStyler.styleButton(tasksButton,FontAwesome.Icons.CHECK," Moje\nzadania");
+        String tasksButtonText = isAdmin ? " Wszystkie\nzadania" : " Moje\nzadania";
+        buttonStyler.styleButton(tasksButton,FontAwesome.Icons.CHECK,tasksButtonText);
         buttonStyler.styleButton(categoriesButton,FontAwesome.Icons.FILTER," Kategorie");
+
+        Dimension buttonSize = new Dimension(140, 50);
+        tasksButton.setPreferredSize(buttonSize);
+        tasksButton.setMinimumSize(buttonSize);
+        tasksButton.setMaximumSize(buttonSize);
 
         tasksButton.setBackground(LIGHT_BLUE);
 
@@ -180,10 +199,11 @@ public class Dashboard extends JFrame{
         super("DashBoard");
         this.setContentPane(mainFrame);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        int width = 1000, height = 800;
+        int width = 1080, height = 800;
         this.setSize(width,height);
 
         this.userID = userID;
+        this.isAdmin = checkIfAdmin(userID);
 
         createPanels();
         createStatsPanel();

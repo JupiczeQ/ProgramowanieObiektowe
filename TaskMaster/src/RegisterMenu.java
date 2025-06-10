@@ -74,7 +74,6 @@ public class RegisterMenu extends JFrame{
                 }
 
                 try {
-                    // Sprawdź czy użytkownik już istnieje
                     if (UserDAO.userExists(loginInput.trim())) {
                         MessageUtils.showError(RegisterMenu.this, "Użytkownik o takiej nazwie już istnieje!");
                         loginField.requestFocus();
@@ -82,7 +81,6 @@ public class RegisterMenu extends JFrame{
                         return;
                     }
 
-                    // Zarejestruj użytkownika
                     boolean success = UserDAO.registerUser(loginInput.trim(), passwordInput);
 
                     if (success) {
